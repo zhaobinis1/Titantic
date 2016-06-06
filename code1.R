@@ -1,15 +1,51 @@
-tr=read.csv("train.csv")
-te=read.csv("test.csv")
-gcm=read.csv("genderclassmodel.csv")
-gm=read.csv("gendermodel.csv")
+tr=read.csv("train.csv",na.strings = c("NA",""),colClasses=c('integer',   # PassengerId
+                                                             'factor',    # Survived 
+                                                             'factor',    # Pclass
+                                                             'character', # Name
+                                                             'factor',    # Sex
+                                                             'numeric',   # Age
+                                                             'integer',   # SibSp
+                                                             'integer',   # Parch
+                                                             'character', # Ticket
+                                                             'numeric',   # Fare
+                                                             'character', # Cabin
+                                                             'factor'     # Embarked
+)
+)
+te=read.csv("test.csv",na.strings = c("NA",""),colClasses=c('integer',   # PassengerId
+                                                            'factor',    # Pclass
+                                                            'character', # Name
+                                                            'factor',    # Sex
+                                                            'numeric',   # Age
+                                                            'integer',   # SibSp
+                                                            'integer',   # Parch
+                                                            'character', # Ticket
+                                                            'numeric',   # Fare
+                                                            'character', # Cabin
+                                                            'factor'     # Embarked
+)
+)
 
 library(randomForest)
-
-
+library(ggplot2)
+library(gridExtra)
 
 #check na in train and test
-sapply(te, function(x) sum(is.na(x)))#86 na in age. 1 na in fare
-sapply(tr, function(x) sum(is.na(x)))#177 na in age.
+sapply(te, function(x) sum(is.na(x)))#86 na in age. 1 na in fare. 327 cabin
+sapply(tr, function(x) sum(is.na(x)))#177 na in age. 687 cabin. 2 embarked
+#visualize distributions of variables
+plot1=ggplot(data=tr,aes(x=Survived))+geom_bar()
+plot2=ggplot(data=tr,aes(x=Pclass))+geom_bar()
+plot3=ggplot(data=tr,aes(x=Sex))+geom_bar()
+plot4=ggplot(data=tr,aes(x=Age))+geom_histogram()
+plot5=ggplot(data=tr,aes(x=SibSp))+geom_bar()
+plot6=ggplot(data=tr,aes(x=Parch))+geom_bar()
+plot8=ggplot(data=tr,aes(x=Fare))+geom_bar()
+#plot9=ggplot(data=tr,aes(x=Cabin))+geom_bar()
+plot10=ggplot(data=tr,aes(x=Embarked))+geom_bar()
+grid.arrange(plot1,plot2,plot3,plot4,plot5,plot6,plot8,plot10)
+
+
 #check association of missing age with survived
 tr2=tr1
 tr2$na.age=is.na(tr2$Age)
@@ -51,14 +87,14 @@ ggplot(full[1:891,], aes(x = Fsize, fill = factor(Survived))) +
   labs(x = 'Family Size')
 
 #62 and 830 of embarkment is missing 
-which(full$Embarked=="")
+which(is.na(full$Embarked))
 
 #check class, fare and embarkment
-ggplot(full[full$Embarked!="",], aes(x = Embarked, y = Fare, fill = factor(Pclass))) +
+ggplot(full[is.na(full$Embarked),], aes(x = Embarked, y = Fare, fill = factor(Pclass))) +
   geom_boxplot()
 
 #check fare and class for those two missing embarkment
-full[full$Embarked=="",]#80 dollars 1st class, so very likely have embark=c
+full[is.na(full$Embarked),]#80 dollars 1st class, so very likely have embark=c
 full$Embarked[full$Embarked==""]="C"
 
 #1 missing fare
